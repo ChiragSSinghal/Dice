@@ -1,12 +1,14 @@
 package com.lordxeres.dice;
 
+import android.content.ClipData;
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.media.MediaPlayer;
-import android.support.annotation.RawRes;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -15,12 +17,14 @@ public class MainActivity extends AppCompatActivity {
 
     private ImageView dice1, dice2;
     private Button rollDice;
+    private MenuItem actionDiceSwitch;
 
     private SensorManager sensorManager;
     private Sensor accelerometer;
     private ShakeDetector shakeDetector;
 
     private int ctr = 0;
+    private boolean diceCount = false;
 
     MediaPlayer mediaPlayer;
 
@@ -32,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
         dice1 = findViewById(R.id.dice1);
         dice2 = findViewById(R.id.dice2);
         rollDice = findViewById(R.id.rollDice);
+        actionDiceSwitch = findViewById(R.id.actionDiceSwitch);
 
         ShakeDetectorInit();
 
@@ -51,6 +56,11 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    public boolean onCreateOptionsMenu (Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
+    }
 
     @Override
     public void onResume() {
@@ -73,18 +83,33 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void DiceSwitch(MenuItem menuItem) {
+        if (diceCount) {
+            diceCount = false;
+            dice2.setVisibility(View.GONE);
+            menuItem.setTitle("Roll Two Dice");
+        }
+        else {
+            diceCount = true;
+            dice2.setVisibility(View.VISIBLE);
+            menuItem.setTitle("Roll One Dice");
+        }
+    }
+
     public void ShakeDetectorInit() {
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         shakeDetector = new ShakeDetector();
         shakeDetector.setOnShakeListener(new ShakeDetector.OnShakeListener() {
             @Override
-            public void onShake(int count) {
-                if (count % 5 == 0){
+            public void onShake() {
+                if (ctr == 4){
                     RollDice();
+                    ctr = 0;
                 }
                 else {
                     RollDice();
+                    ctr++;
                 }
             }
         });
@@ -94,6 +119,11 @@ public class MainActivity extends AppCompatActivity {
         mediaPlayer.start();
         int diceOneValue = (int) (Math.random() * 6) + 1;
         int diceTwoValue = (int) (Math.random() * 6) + 1;
+        try {
+            Thread.sleep(700);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         switch (diceOneValue) {
             case 1:
@@ -116,6 +146,12 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
 
+        if (diceCount) {
+            RollSecondDice(diceTwoValue);
+        }
+    }
+
+    void RollSecondDice(int diceTwoValue) {
         switch (diceTwoValue) {
             case 1:
                 dice2.setImageResource(R.drawable.dice_1);

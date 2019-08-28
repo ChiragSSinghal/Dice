@@ -9,19 +9,17 @@ import android.util.FloatMath;
 public class ShakeDetector implements SensorEventListener {
 
     private static final float SHAKE_THRESHOLD_GRAVITY = 2.7f;
-    private static final int SHAKE_SLOP_TIME_MS = 500;
-    private static final int SHAKE_COUNT_RESET_TIME_MS = 3000;
+    private static final int SHAKE_SLOP_TIME_MS = 1000;
 
     private OnShakeListener listener;
     private long shakeTimeStamp;
-    private int shakeCount;
 
     public void setOnShakeListener(OnShakeListener listener) {
         this.listener = listener;
     }
 
     public interface OnShakeListener {
-        public void onShake(int count);
+        public void onShake();
     }
 
     @Override
@@ -49,14 +47,9 @@ public class ShakeDetector implements SensorEventListener {
                     return;
                 }
 
-                if (shakeTimeStamp + SHAKE_COUNT_RESET_TIME_MS < now) {
-                    shakeCount = 0;
-                }
-
                 shakeTimeStamp = now;
-                shakeCount++;
 
-                listener.onShake(shakeCount);
+                listener.onShake();
             }
         }
     }
